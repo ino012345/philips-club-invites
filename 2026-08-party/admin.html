@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Philips Club — 主催者管理画面</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #0D1B2E !important;
+    background-color: #0D1B2E !important;
+    color: #E8E0D0;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── Login Screen ── */
+  #login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  .login-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #C9A84C;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .login-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #A09070;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  .login-field {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 16px;
+  }
+
+  .login-field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 8px;
+  }
+
+  .login-field input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 14px 18px;
+    color: #E8E0D0;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+  }
+
+  .login-field input:focus {
+    border-color: #C9A84C;
+  }
+
+  .login-btn {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid #C9A84C;
+    color: #C9A84C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 16px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.3s;
+  }
+
+  .login-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #C9A84C;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .login-btn:hover { color: #0D1B2E; }
+  .login-btn:hover::before { transform: scaleX(1); }
+  .login-btn span { position: relative; z-index: 1; }
+
+  .login-error {
+    margin-top: 12px;
+    font-size: 11px;
+    color: #E07070;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Admin Screen ── */
+  #admin-screen {
+    display: none;
+    padding: 40px 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .admin-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .admin-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #C9A84C;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .admin-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #A09070;
+    text-transform: uppercase;
+  }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-box {
+    flex: 1;
+    min-width: 120px;
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: #C9A84C;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #A09070;
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: #A09070;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .action-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+  .action-btn.danger { border-color: rgba(200,80,80,0.3); color: #a06060; }
+  .action-btn.danger:hover { border-color: #E07070; color: #E07070; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 600px;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    color: #C9A84C;
+    font-weight: 500;
+    letter-spacing: 1px;
+    font-size: 9px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.06);
+    color: #C8BCA8;
+  }
+
+  tr.companion-row td { background: rgba(201,168,76,0.03); color: #A09070; }
+  tr:hover td { background: rgba(201,168,76,0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+
+  .badge-rep { border-color: #C9A84C; color: #C9A84C; }
+  .badge-com { border-color: rgba(201,168,76,0.3); color: #A09070; }
+
+  .no-data {
+    text-align: center;
+    color: #A09070;
+    font-style: italic;
+    padding: 48px;
+  }
+
+  .logout-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.2);
+    color: #A09070;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .logout-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-title">Philips Club</div>
+  <div class="login-sub">Host Administration</div>
+  <div class="login-field">
+    <label>パスワード</label>
+    <input type="password" id="password-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()">
+  </div>
+  <button class="login-btn" onclick="login()"><span>ログイン</span></button>
+  <div class="login-error" id="login-error"></div>
+</div>
+
+<!-- Admin -->
+<div id="admin-screen">
+  <button class="logout-btn" onclick="logout()">ログアウト</button>
+
+  <div class="admin-header">
+    <div class="admin-title">登録者管理</div>
+    <div class="admin-sub">Philips Club Party — Summer 2026</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">総参加者数</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-rep">0</div>
+      <div class="stat-label">代表者</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-companion">0</div>
+      <div class="stat-label">付き添い者</div>
+    </div>
+  </div>
+
+  <div class="action-btns">
+    <button class="action-btn" onclick="exportExcel()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Excelダウンロード
+    </button>
+    <button class="action-btn" onclick="refreshTable()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      更新
+    </button>
+    <button class="action-btn danger" onclick="clearData()">
+      データをリセット
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>お名前</th>
+          <th>メールアドレス</th>
+          <th>電話番号</th>
+          <th>区分</th>
+          <th>登録日時</th>
+        </tr>
+      </thead>
+      <tbody id="reg-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // ── パスワード設定（ここを変更してください） ──
+  const ADMIN_PASSWORD = "philips2026";
+  const STORAGE_KEY = "philips_club_registrations";
+
+  document.documentElement.style.setProperty('background', '#0D1B2E', 'important');
+  document.documentElement.style.setProperty('background-color', '#0D1B2E', 'important');
+  document.body.style.setProperty('background', '#0D1B2E', 'important');
+  document.body.style.setProperty('background-color', '#0D1B2E', 'important');
+
+  function login() {
+    const pw = document.getElementById('password-input').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-screen').style.display = 'block';
+      refreshTable();
+    } else {
+      document.getElementById('login-error').textContent = 'パスワードが正しくありません';
+    }
+  }
+
+  function logout() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('password-input').value = '';
+    document.getElementById('login-error').textContent = '';
+  }
+
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function companionType(val) {
+    return val === 'その他（主催者の了承済み）' ? 'その他' : val;
+  }
+
+  function refreshTable() {
+    const data = loadData();
+    const tbody = document.getElementById('reg-tbody');
+
+    let repCount = 0, compCount = 0;
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="no-data">まだ登録者がいません</td></tr>';
+    } else {
+      let rowNum = 1;
+      tbody.innerHTML = data.map(r => {
+        repCount++;
+        let html = `
+          <tr>
+            <td style="color:#A09070">${rowNum++}</td>
+            <td>${esc(r.name)}</td>
+            <td>${esc(r.email)}</td>
+            <td>${esc(r.phone)}</td>
+            <td><span class="badge badge-rep">代表者</span></td>
+            <td style="color:#A09070">${esc(r.datetime)}</td>
+          </tr>`;
+        if (r.companion !== 'なし' && r.cName) {
+          compCount++;
+          html += `
+          <tr class="companion-row">
+            <td style="color:#A09070">${rowNum++}</td>
+            <td>${esc(r.cName)}</td>
+            <td>${esc(r.cEmail||'—')}</td>
+            <td>${esc(r.cPhone||'—')}</td>
+            <td><span class="badge badge-com">付き添い（${esc(companionType(r.companion))}）</span></td>
+            <td style="color:#A09070">${esc(r.datetime)}</td>
+          </tr>`;
+        }
+        return html;
+      }).join('');
+    }
+
+    document.getElementById('stat-total').textContent = repCount + compCount;
+    document.getElementById('stat-rep').textContent = repCount;
+    document.getElementById('stat-companion').textContent = compCount;
+  }
+
+  function exportExcel() {
+    const data = loadData();
+    if (!data.length) { alert('登録者がいません'); return; }
+
+    const rows = [['No.', 'お名前', 'メールアドレス', '電話番号', '区分', '登録日時']];
+    let num = 1;
+    data.forEach(r => {
+      rows.push([num++, r.name, r.email, r.phone, '代表者', r.datetime]);
+      if (r.companion !== 'なし' && r.cName) {
+        rows.push([num++, r.cName, r.cEmail||'', r.cPhone||'', `付き添い（${companionType(r.companion)}）`, r.datetime]);
+      }
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch:5 },{ wch:20 },{ wch:28 },{ wch:16 },{ wch:20 },{ wch:22 }];
+    XLSX.utils.book_append_sheet(wb, ws, '登録者一覧');
+    XLSX.writeFile(wb, `Philips_Club_登録者一覧_${new Date().toLocaleDateString('ja-JP').replace(/\//g,'-')}.xlsx`);
+  }
+
+  function clearData() {
+    if (!confirm('全ての登録データを削除しますか？この操作は元に戻せません。')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    refreshTable();
+  }
+</script>
+</body>
+</html>

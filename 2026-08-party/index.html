@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Philips Club Party — Invitation</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
@@ -466,39 +467,39 @@
   <!-- Invitation -->
   <div class="invitation-card">
     <div class="invitation-text">
-      <p>大人になるほど、<br>
+      <p>このたび、日頃より大切にしている皆さまをお迎えし、<br>
+      <span class="en">We are delighted to invite those we hold dear —</span>
+      Philips Club Party を開催いたします。<br>
+      <span class="en">to our Philips Club Party.</span></p>
+
+      <p>大人になるにつれ、<br>
       <span class="en">As we grow older,</span>
-      <span style="white-space:nowrap; font-size:13px;">気づけば、集まる理由は少なくなっていく。</span><br>
-      <span class="en">we find fewer reasons to come together.</span></p>
+      かつてのように自然と集まる機会は少なくなっていきます。<br>
+      <span class="en">the chance to gather as naturally as we once did quietly fades.</span></p>
 
-      <p>それでも——<br>
-      <span class="en">And yet—</span>
-      <span class="invitation-highlight">関係は、途切れさせたくない。</span><br>
-      <span class="en">we don't want those connections to fade.</span></p>
+      <p>だからこそ、年に一度、<br>
+      <span class="en">That is why, once a year,</span>
+      <span class="invitation-highlight">大切な人たちが集い、語らい、笑い合える時間をつくりたい。</span><br>
+      <span class="en">we wish to create a time for cherished friends to gather, share stories, and laugh together.</span>
+      その想いから、この場を設けました。<br>
+      <span class="en">It is with this wish that we have made this occasion.</span></p>
 
-      <p>いつか、それぞれに家族ができても、<br>
-      <span class="en">Even when we each have our own families,</span>
-      変わらず集まり、<br>
-      <span class="en">we'll still gather,</span>
-      子どもたち同士も自然に遊べる関係でいられるように。<br>
-      <span class="en">so our children can naturally grow up and play together.</span></p>
+      <p>これから先、それぞれに家族ができても、<br>
+      <span class="en">In the years ahead, even as each of us builds our own family,</span>
+      変わらず家族ぐるみで関わり合い、<br>
+      <span class="en">may we remain as close as ever —</span>
+      <span class="invitation-highlight">いつか子どもたち同士も自然に遊び合えるような、長く続く関係を育んでいければ幸いです。</span><br>
+      <span class="en">nurturing a bond that endures, so that one day our children may naturally grow up and play together.</span></p>
 
-      <p>年に一度、<br>
-      <span class="en">Once a year,</span>
-      ただ集まるのではなく、<br>
-      <span class="en">not just to meet—</span>
-      <span class="invitation-highlight">"帰ってきたくなる場所"として。</span><br>
-      <span class="en">but to return to a place we belong.</span></p>
-
-      <p>ここで過ごす時間だけは、<br>
-      <span class="en">At least for the time we spend here,</span>
-      <span class="invitation-highlight">昔みたいに、みんながただ笑っていられますように。</span><br>
-      <span class="en">so everyone can simply laugh—just like we used to.</span></p>
+      <p>この一日が、皆さまにとって<br>
+      <span class="en">May this day become</span>
+      <span class="invitation-highlight">心から楽しめる特別な時間となりますように。</span><br>
+      <span class="en">a truly special time that everyone can enjoy from the heart.</span></p>
 
       <div class="invitation-closing">
         <div class="closing-divider"></div>
         <p class="closing-brand">PHILIPS CLUB</p>
-        <p class="closing-tagline">Where we return.</p>
+        <p class="closing-tagline">A Gathering for Life.</p>
       </div>
     </div>
     <div class="invitation-note">
@@ -673,7 +674,13 @@
   // ── Companion toggle ──
   function toggleCompanion() {
     var val = document.querySelector("input[name='companion']:checked").value;
-    document.getElementById("companion-fields").style.display = (val === "なし") ? "none" : "block";
+    var show = val !== "なし";
+    document.getElementById("companion-fields").style.display = show ? "block" : "none";
+    ["c-name", "c-email", "c-phone"].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (show) { el.setAttribute("required", ""); }
+      else       { el.removeAttribute("required"); }
+    });
   }
 
   // ── Storage ──
