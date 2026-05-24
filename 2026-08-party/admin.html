@@ -6,6 +6,9 @@
 <title>Philips Club — 主催者管理画面</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -346,9 +349,14 @@
 </div>
 
 <script>
-  // ── パスワード設定（ここを変更してください） ──
+  // ── Firebase ──
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ── パスワード設定 ──
   const ADMIN_PASSWORD = "philips2026";
-  const STORAGE_KEY = "philips_club_registrations";
+
+  let registrations = [];
 
   document.documentElement.style.setProperty('background', '#0D1B2E', 'important');
   document.documentElement.style.setProperty('background-color', '#0D1B2E', 'important');
@@ -373,11 +381,6 @@
     document.getElementById('login-error').textContent = '';
   }
 
-  function loadData() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    catch { return []; }
-  }
-
   function esc(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
@@ -386,17 +389,26 @@
     return val === 'その他（主催者の了承済み）' ? 'その他' : val;
   }
 
-  function refreshTable() {
-    const data = loadData();
+  async function refreshTable() {
     const tbody = document.getElementById('reg-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" class="no-data">読み込み中...</td></tr>';
+
+    try {
+      const snapshot = await db.collection('registrations').orderBy('createdAt', 'asc').get();
+      registrations = snapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+    } catch (err) {
+      console.error('Firestore read error:', err);
+      tbody.innerHTML = '<tr><td colspan="6" class="no-data">データの取得に失敗しました</td></tr>';
+      return;
+    }
 
     let repCount = 0, compCount = 0;
 
-    if (!data.length) {
+    if (!registrations.length) {
       tbody.innerHTML = '<tr><td colspan="6" class="no-data">まだ登録者がいません</td></tr>';
     } else {
       let rowNum = 1;
-      tbody.innerHTML = data.map(r => {
+      tbody.innerHTML = registrations.map(r => {
         repCount++;
         let html = `
           <tr>
@@ -429,12 +441,11 @@
   }
 
   function exportExcel() {
-    const data = loadData();
-    if (!data.length) { alert('登録者がいません'); return; }
+    if (!registrations.length) { alert('登録者がいません'); return; }
 
     const rows = [['No.', 'お名前', 'メールアドレス', '電話番号', '区分', '登録日時']];
     let num = 1;
-    data.forEach(r => {
+    registrations.forEach(r => {
       rows.push([num++, r.name, r.email, r.phone, '代表者', r.datetime]);
       if (r.companion !== 'なし' && r.cName) {
         rows.push([num++, r.cName, r.cEmail||'', r.cPhone||'', `付き添い（${companionType(r.companion)}）`, r.datetime]);
@@ -448,10 +459,18 @@
     XLSX.writeFile(wb, `Philips_Club_登録者一覧_${new Date().toLocaleDateString('ja-JP').replace(/\//g,'-')}.xlsx`);
   }
 
-  function clearData() {
+  async function clearData() {
     if (!confirm('全ての登録データを削除しますか？この操作は元に戻せません。')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    refreshTable();
+    try {
+      const snapshot = await db.collection('registrations').get();
+      const batch = db.batch();
+      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      await refreshTable();
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('削除に失敗しました');
+    }
   }
 </script>
 </body>
